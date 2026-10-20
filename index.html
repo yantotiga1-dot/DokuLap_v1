@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DokuLap — Login</title>
+<link rel="stylesheet" href="assets/css/design-system.css"><link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body class="auth-page">
+<main class="auth-card">
+  <div class="brand-mark">DL</div>
+  <h1>DokuLap</h1>
+  <p class="muted">Dokumentasi Lapangan</p>
+  <form id="loginForm" class="form-grid">
+    <label>Username<input id="username" type="text" autocomplete="username" required placeholder="username"></label>
+    <label>Password<input id="password" type="password" autocomplete="current-password" required placeholder="••••••••••"></label>
+    <button class="btn btn-primary" type="submit">Masuk</button>
+  </form>
+  <details style="margin-top:18px;text-align:left">
+    <summary style="cursor:pointer;font-size:13px;color:var(--muted)">Pengaturan koneksi backend</summary>
+    <label style="display:block;margin-top:10px">URL Google Apps Script Web App
+      <input id="apiUrl" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="url">
+    </label>
+    <div class="form-actions"><button id="saveApiUrl" class="btn btn-secondary" type="button">Simpan URL</button><button id="testApi" class="btn btn-ghost" type="button">Tes koneksi</button></div>
+    <small class="muted">Gunakan URL deployment /exec, bukan /dev. URL disimpan di browser ini.</small>
+  </details>
+  <div id="loginStatus" class="muted" style="margin-top:14px" role="status" aria-live="polite"></div>
+  <div style="margin-top:20px;font-size:12px" class="muted">DokuLap v2 • Google Apps Script + Drive + Sheets</div>
+</main>
+<script src="assets/js/api.js"></script>
+<script>
+document.getElementById('apiUrl').value=DokuAPI.getApiUrl();
+document.getElementById('saveApiUrl').addEventListener('click',()=>{
+  const status=document.getElementById('loginStatus');
+  try{DokuAPI.setApiUrl(document.getElementById('apiUrl').value);status.textContent='URL backend tersimpan.';}catch(err){status.textContent=err.message;}
+});
+document.getElementById('testApi').addEventListener('click',async()=>{
+  const status=document.getElementById('loginStatus');
+  try{DokuAPI.setApiUrl(document.getElementById('apiUrl').value);status.textContent='Menguji koneksi...';await DokuAPI.call('health');status.textContent='Backend terhubung.';}catch(err){status.textContent='Tes koneksi gagal: '+err.message;}
+});
+document.getElementById('loginForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const status=document.getElementById('loginStatus');
+  status.textContent='Menghubungkan ke backend...'; e.submitter.disabled=true; e.submitter.textContent='Memproses...';
+  try{
+    await DokuAPI.login(document.getElementById('username').value,document.getElementById('password').value);
+    status.textContent='Login berhasil. Membuka dashboard...';
+    location.href='dashboard.html';
+  }catch(err){ status.textContent='Login gagal: '+err.message; e.submitter.disabled=false; e.submitter.textContent='Masuk'; }
+});
+</script>
+</body>
+</html>
